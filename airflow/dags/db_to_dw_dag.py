@@ -28,7 +28,7 @@ dag = DAG(
 )
 
 # set spark-submit options
-PACKAGES = '--packages  com.amazon.deequ:deequ:2.0.7-spark-3.5,mysql:mysql-connector-java:8.0.33'
+PACKAGES = '--packages  com.amazon.deequ:deequ:2.0.7-spark-3.5'
 JARS = '--jars myjars/packages_jars/spark-bigquery-with-dependencies_2.12-0.41.1.jar'
 
 

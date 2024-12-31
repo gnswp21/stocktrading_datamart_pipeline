@@ -85,7 +85,7 @@ for table in sys.argv[1:]:
 
     # save data to bigquery
     spark.conf.set("parentProject", "spark2big")
-    spark.conf.set("credentialsFile", "myjars/spark2big-323e6547b0e3.json")
+    spark.conf.set("credentialsFile", "myjars/spark2big-992917168560.json")
     checkResult_df.write.format("bigquery")\
         .option("writeMethod", "direct") \
         .mode('overwrite') \

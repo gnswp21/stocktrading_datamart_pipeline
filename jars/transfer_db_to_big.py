@@ -10,7 +10,7 @@ spark = SparkSession.builder\
     .getOrCreate()
 
 spark.conf.set("parentProject", "spark2big")
-spark.conf.set("credentialsFile", "myjars/spark2big-323e6547b0e3.json")
+spark.conf.set("credentialsFile", "myjars/spark2big-992917168560.json")
 
 df_list = sys.argv[1:]
 if df_list[0] == 'all':
