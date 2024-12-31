@@ -1,5 +1,6 @@
 airflow\logs\*
 *.logs
+*.log
 jars/spark2big-992917168560.json
 airflow/dags/__pycache__/db_to_dw_dag.cpython-312.pyc
 airflow/dags/__pycache__/db_to_dw.cpython-312.pyc
