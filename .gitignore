@@ -1,2 +1,10 @@
 airflow\logs\*
 *.logs
+jars/spark2big-992917168560.json
+airflow/dags/__pycache__/db_to_dw_dag.cpython-312.pyc
+airflow/dags/__pycache__/db_to_dw.cpython-312.pyc
+airflow/dags/__pycache__/extract_yfiance_securites_dag.cpython-312.pyc
+airflow/dags/__pycache__/init_database_dag.cpython-312.pyc
+airflow/dags/__pycache__/temp_dag.cpython-312.pyc
+jars/packages_jars/mysql-connector-j-8.0.33.jar
+jars/packages_jars/spark-bigquery-with-dependencies_2.12-0.41.1.jar
