@@ -70,6 +70,11 @@ check = (
 - 30분 마다 big-query db와의 연동을 진행행
 
 ### 2.3. 데이터마트로 작동하는 bigquery와 tableau를 이용한 시각화
+
+> bigquery와 통해 빠르게 쿼리하고 이를 tableau를 통해 간단히 시각화할 수 있다.
+
+- total_orders_by_day
+
 ```
 SELECT DATE(t.order_datetime) AS trade_date,
        COUNT(*) AS total_orders
@@ -79,7 +84,6 @@ ORDER BY total_orders DESC
 ```
 
 <img src="/readme_image/query1_total_order_by_day.png" alt="Query1 Total Order by Day" width="300"/>
-
 
 ## 3. 트러블 슈팅
 
