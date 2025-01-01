@@ -1,0 +1,11 @@
+check,check_level,check_status,constraint,constraint_status,constraint_message
+Comprehensive Data Quality Check,Warning,Warning,"ComplianceConstraint(Compliance(sex contained in 남자,여자,`sex` IS NULL OR `sex` IN ('남자','여자'),None,List(sex),None))",Failure,Value: 0.0 does not meet the constraint requirement!
+Comprehensive Data Quality Check,Warning,Warning,"CompletenessConstraint(Completeness(name,None,None))",Success,
+Comprehensive Data Quality Check,Warning,Warning,"CompletenessConstraint(Completeness(budget_id,None,None))",Success,
+Comprehensive Data Quality Check,Warning,Warning,"CompletenessConstraint(Completeness(customer_id,None,None))",Success,
+Comprehensive Data Quality Check,Warning,Warning,"ComplianceConstraint(Compliance(age is greater than 18,age > 18 and age < 150,None,List(),None))",Success,
+Comprehensive Data Quality Check,Warning,Warning,"AnalysisBasedConstraint(DataType(budget_id,None),<function1>,Some(<function1>),Some(budget_id is an integer))",Success,
+Comprehensive Data Quality Check,Warning,Warning,"AnalysisBasedConstraint(DataType(age,None),<function1>,Some(<function1>),Some(age is an integer))",Success,
+Comprehensive Data Quality Check,Warning,Warning,"UniquenessConstraint(Uniqueness(List(budget_id),None,None))",Success,
+Comprehensive Data Quality Check,Warning,Warning,"UniquenessConstraint(Uniqueness(List(customer_id),None,None))",Success,
+Comprehensive Data Quality Check,Warning,Warning,"AnalysisBasedConstraint(DataType(customer_id,None),<function1>,Some(<function1>),Some(id is an integer))",Success,

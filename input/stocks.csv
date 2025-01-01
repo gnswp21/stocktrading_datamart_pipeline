@@ -1,4 +1,4 @@
-stock_id,company,tickets
+stock_id,company,ticker
 1,apple,AAPL
 2,amazon,AMZN
 3,google,GOOGL

@@ -1,0 +1,8 @@
+check,check_level,check_status,constraint,constraint_status,constraint_message
+Comprehensive Data Quality Check,Warning,Success,"ComplianceConstraint(Compliance(Valid budget range,budget < 100000000,None,List(),None))",Success,
+Comprehensive Data Quality Check,Warning,Success,"CompletenessConstraint(Completeness(budget,None,None))",Success,
+Comprehensive Data Quality Check,Warning,Success,"UniquenessConstraint(Uniqueness(List(budget_id),None,None))",Success,
+Comprehensive Data Quality Check,Warning,Success,"AnalysisBasedConstraint(DataType(budget_id,None),<function1>,Some(<function1>),Some(budget_id is an integer))",Success,
+Comprehensive Data Quality Check,Warning,Success,"CompletenessConstraint(Completeness(budget_id,None,None))",Success,
+Comprehensive Data Quality Check,Warning,Success,"ComplianceConstraint(Compliance(budget is non-negative,COALESCE(CAST(budget AS DECIMAL(20,10)), 0.0) >= 0,None,List(budget),None))",Success,
+Comprehensive Data Quality Check,Warning,Success,"AnalysisBasedConstraint(DataType(budget,None),<function1>,Some(<function1>),Some(budget is an integer))",Success,

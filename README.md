@@ -73,7 +73,7 @@ check = (
 
 > bigquery와 통해 빠르게 쿼리하고 이를 tableau를 통해 간단히 시각화할 수 있다.
 
-- total_orders_by_day
+- query1_total_orders_by_day
 
 ```
 SELECT DATE(t.order_datetime) AS trade_date,
@@ -83,7 +83,20 @@ GROUP BY DATE(t.order_datetime)
 ORDER BY total_orders DESC
 ```
 
+
+
 <img src="/readme_image/query1_total_order_by_day.png" alt="Query1 Total Order by Day" width="300"/>
+
+
+
+
+- [query3_buy_ticker_percentage_by_age.sql](/sql/query3_buy_AAPL_by_age.sql)
+<img src="/readme_image/query3_percertage_by_ticker_agegroup.png" alt="Query1 Total Order by Day" width="500"/>
+
+
+- [query4_verificationResult_budget.sql](/sql/query4_verificationResult_budget.sql)
+<img src="/readme_image/query4_verifcationResults.png" alt="Query1 Total Order by Day" width="500"/>
+
 
 ## 3. 트러블 슈팅
 
