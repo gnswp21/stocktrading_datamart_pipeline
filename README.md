@@ -100,7 +100,7 @@ ORDER BY total_orders DESC
 
 ## 3. 트러블 슈팅
 
-### 3.1. airflow 스파크 실행|클러스터 매니저| 해결
+### 3.1. airflow 스파크 실행 | 클러스터 매니저 | 해결
 
 _상황_
 
@@ -114,7 +114,7 @@ _해결_
   - ex) docker exec sparm-master spark-submit --jar ... somePySpark.py
   - 도커 윈도우 데스크탑의 경우 설정에서 Expose daemon on tcp://localhost:2375 without TLS를 체크하는 것으로 도커인도크 사용 가능!
 
-### 3.2. airflow 스파크 실행|의존성| 해결
+### 3.2. airflow 스파크 실행 | 의존성 | 해결
 
 _상황_
 
