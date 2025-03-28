@@ -1,80 +1,120 @@
 # stocktrading_datamart_pipeline
 
-## 1. 프로젝트 개요
+## 프로젝트 개요
 
-- 주식거래상황을 모델링하여 데이터베이스, 데이터마트를 운영.
-- etl되는 데이터에 대한 데이터 퀄리티 체크, 로깅, 모니터링 구성
+주식거래 서비스의 데이터마트(DM) 운영을 모델링한 프로젝트입니다. 특히, DB에서 DM로의 전송, 그 과정에서의 정합성 검증이 주요 목표입니다.
+
+<div align="center">
+  <img src="/readme_image/architecture.png" alt="img" width="550">
+</div>
+
+1. 기존의 DB에서 데이터 마트로 주기적 데이터 전송 (By Spark, Airflow)
+2. 전송되는 데이터에 대한 데이터 퀄리티 체크, 로깅, 모니터링 구성
   - pydeequ를 이용한 데이터 퀄리티 체크
   - spark history server운영, airflow를 통해
-- airflow를 통한 주기적인 데이터 최신화, 데이터 퀄리티 체크를 워크플로로 구성
-- bigquery를 데이터마트로 운영하고 tableau로 시각화된 BI 제공
+3. Bigquery를 데이터마트로 운영하고 tableau로 시각화된 BI 제공
 
-![img](/readme_image/architecture.png)
 
----
 
-## 2. 구현된 기능 및 성과
 
-### 2.1. 데이터 extract
 
-- yfinance api를 통한 24/12/26 ~ 24/12/28까지의 stock 데이터 흭득
+### 구성
 
-| Datetime                  | Close  | High   | Low    | Open   | Volume  | Company | Ticker |
-| ------------------------- | ------ | ------ | ------ | ------ | ------- | ------- | ------ |
-| 2024-12-26 14:30:00+00:00 | 258.98 | 259.19 | 258.10 | 258.98 | 1052265 | Apple   | AAPL   |
-| 2024-12-26 14:31:00+00:00 | 259.39 | 259.65 | 258.85 | 258.89 | 299504  | Apple   | AAPL   |
+**input :** DB에 저장되는 초기 데이터가 담긴 디렉토리입니다.
+- **stock :** `yfinacne.ipynb`를 통해 extract한 주식(ticker) 데이터
+- **budget.csv, ./customer.csv, ./stocks.csv, ./trade.csv :**  `chatgpt`를 통해 생성해낸 가상의 고객 데이터
 
-- chatgpt를 통해 가상의 고객데이터, 계좌데이터, 거래데이터를 생성해 주식거래상황을 모델링
 
-| ID  | 이름   | 성별 | 나이 | 계좌 ID |
-| --- | ------ | ---- | ---- | ------- |
-| 1   | 김민수 | 남   | 32   | 100001  |
-| 2   | 이영희 | 여   | 27   | 100013  |
-| 3   | 박성준 | 남   | 41   | 100024  |
-| 4   | 최수정 | 여   | 36   | 100035  |
-| 5   | 오세훈 | 남   | 28   | 100046  |
+**airflow/dags :** 두가지 dag를 통해 관리되며, `spark-submit`을 실행하는 bash operator로 구성되어 있습니다.
+- **init_database_dag.py :** input에 저장된 csv 파일들을 `mysql db에 저장`
+- **db_to_dw_dag.py :** mysql에 저장된 table을 `데이터 퀄리티 검증 후 bigquery로 전송`
+
+
+**jars :** `spark-submit` 에 제출되는 jar 파일, PySpark 애플리케이션
+- **constraints :** 각 테이블에 대한 퀄리티 및 정합성 검사 후 검사 결과를 bigquery에 저장하는 코드가 담긴 디렉토리 . `Pydeequ`를 통해 spark 기반으로 검사부터 저장까지 이루어짐
+- get_df_profiles.py : 데이터 프로필을 검사 후 저장
+- init_db.py : csv 파일을 읽어와 db에 저장하는 spark 코드
+- **transfer_db_to_big.py :** db에 저장된 기존 테이블을 dm로 전송하는 spark 코드
+- **packages_jars :** spark에 제출하는 mysql, bigquery 용 jar 파일
+- spark2big-992917168560.json (git ignored) :  Bigquery credential로 `transfer_db_to_big.py`에 사용
+
+**sql :** `Bigquery`에서 실행되는 sql 쿼리입니다. 
+- query_1_... : 날짜별 총 주문의 수
+- query_2_... : 나이대, 성별 그룹의 가장 많이 구매된 종목
+- query_3_... : 나이대별 Apple 종목의 거래 횟수
+- query_4_... : 데이터 퀄리티(constraints) 검증 결과를 조회
+
+
+**Dockerfile, Dockerfile-airflow :** 각각 spark, airflow를 위한 도커 파일입니다.
+**docker-compose.yaml :** 스파크 드라이버, 2개의 스파크 워커, 스파크 히스토리 서버, airflow가 구성된 도커 컴포즈입니다.
+
+
+
+## 구현된 기능 및 성과
+
+### 데이터 extract
+
+- `yfinance api`를 통한 24/12/26 ~ 24/12/28까지의 stock 데이터 흭득
+- chatgpt를 통해 가상의 `customer.csv, budget.csv, trade.csv, stocks.csv` 생성해 주식거래 서비스스를 모델링
 
 - db erd
-  ![img](/readme_image/dberd.png)
-- 데이터 퀄리티 체크
+<div align="center">
+  <img src="/readme_image/dberd.png" alt="img" width="550">
+</div>
+
+### 데이터 퀄리티 및 정합성 체크
+다음 같은 `Pydeequ` 코드로 데이터 퀄리티 및 정합성을 체크합니다.
 
 ```
 check = (
-    check.isComplete("customer_id", hint="No nulls in id")  # id는 null 값이 없어야 함
-    .isUnique("customer_id", hint="Unique id")  # id는 유일해야 함
+    # id는 null 값이 없어야 함
+    check.isComplete("customer_id", hint="No nulls in id") 
+    # id는 유일해야 함
+    .isUnique("customer_id", hint="Unique id")  
     # id는 정수여야 함
     .hasDataType("customer_id", ConstrainableDataTypes.Integral, hint="id is an integer")
-
+    # 성별은 남성 혹은 여성
     .isContainedIn("sex", ["남자", "여자"])
-
-    .isComplete("name", hint="No nulls in name")  # name은 null 값이 없어야 함
+    # name은 null 값이 없어야 함
+    .isComplete("name", hint="No nulls in name")  
     # age는 18보다 크고 150보다 작음
     .satisfies("age > 18 and age < 150", constraintName="age is greater than 18")
     .hasDataType("age", ConstrainableDataTypes.Integral, hint="age is an integer")
-
+    # budget_id는 null이 없음
     .isComplete("budget_id", hint="No nulls in budget_id")
-    .isUnique("budget_id", hint="Unique budget_id")  # id는 유일해야 함
+    # budget_id는 유일해야 함
+    .isUnique("budget_id", hint="Unique budget_id")  
     # budget_id는 정수
     .hasDataType("budget_id", ConstrainableDataTypes.Integral, hint="budget_id is an integer")
 )
 ```
 
-![img](/readme_image/verfication.png)
+<div align="center">
+  <img src="/readme_image/verfication.png" alt="img" width="700">
+</div>
 
-### 2.2. airflow dag 스케쥴링
 
-![img](/readme_image/airflow_log.png)
+
+### Airflow dag 스케쥴링
+<div align="center">
+  <img src="/readme_image/airflow_log.png" alt="img" width="600">
+</div>
 
 - airflow를 통한 순차적인 워크플로 실행
 - 각 실행에 대한 로그 관리
 - 30분 마다 big-query db와의 연동을 진행행
 
-### 2.3. 데이터마트로 작동하는 bigquery와 tableau를 이용한 시각화
+### 데이터마트로 작동하는 Bigquery와 tableau를 이용한 시각화
 
-> bigquery와 통해 빠르게 쿼리하고 이를 tableau를 통해 간단히 시각화할 수 있다.
+`bigquery`를 통해 **빠르게 쿼리**하고 이를 `tableau`를 통해 간단히 시각화할 수 있습니다.
 
-- query1_total_orders_by_day
+- query1_total_orders_by_day.sql : 날짜별 총 주문의 수
 
+<div align="center">
+  <img src="/readme_image/query1_total_order_by_day.png" alt="img" width="200">
+</div>
+
+  
 ```
 SELECT DATE(t.order_datetime) AS trade_date,
        COUNT(*) AS total_orders
@@ -85,17 +125,20 @@ ORDER BY total_orders DESC
 
 
 
-<img src="/readme_image/query1_total_order_by_day.png" alt="Query1 Total Order by Day" width="300"/>
+
+- [query3_buy_ticker_percentage_by_age.sql](/sql/query3_buy_AAPL_by_age.sql) : 나이대별 Apple 종목의 거래 횟수
+<div align="center">
+  <img src="/readme_image/query3_percertage_by_ticker_agegroup.png" alt="img" width="500">
+</div>
 
 
 
+- [query4_verificationResult_budget.sql](/sql/query4_verificationResult_budget.sql) : 데이터 퀄리티(constraints) 검증 결과를 조회
 
-- [query3_buy_ticker_percentage_by_age.sql](/sql/query3_buy_AAPL_by_age.sql)
-<img src="/readme_image/query3_percertage_by_ticker_agegroup.png" alt="Query1 Total Order by Day" width="500"/>
+<div align="center">
+  <img src="/readme_image/query4_verifcationResults.png" alt="img" width="500">
+</div>
 
-
-- [query4_verificationResult_budget.sql](/sql/query4_verificationResult_budget.sql)
-<img src="/readme_image/query4_verifcationResults.png" alt="Query1 Total Order by Day" width="500"/>
 
 
 ## 3. 트러블 슈팅
