@@ -16,9 +16,9 @@
 
 
 
+---
 
-
-### 구성
+## 구성
 
 **input :** DB에 저장되는 초기 데이터가 담긴 디렉토리입니다.
 - **stock :** `yfinacne.ipynb`를 통해 extract한 주식(ticker) 데이터
@@ -55,7 +55,7 @@
 ### 데이터 extract
 
 - `yfinance api`를 통한 24/12/26 ~ 24/12/28까지의 stock 데이터 흭득
-- chatgpt를 통해 가상의 `customer.csv, budget.csv, trade.csv, stocks.csv` 생성해 주식거래 서비스스를 모델링
+- chatgpt를 통해 가상의 `customer.csv, budget.csv, trade.csv, stocks.csv` 생성해 주식거래 서비스를 모델링
 
 - db erd
 <div align="center">
