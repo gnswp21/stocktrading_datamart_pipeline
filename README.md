@@ -2,51 +2,19 @@
 
 ## 프로젝트 개요
 
-주식거래 서비스의 데이터마트(DM) 운영을 모델링한 프로젝트입니다. 특히, DB에서 DM로의 전송, 그 과정에서의 정합성 검증이 주요 목표입니다.
+주식거래 서비스의 데이터마트 운영을 모델링한 프로젝트입니다. 특히, DB에서 데이터마트트로의 전송, 그 과정에서의 정합성 검증이 주요 목표입니다.
 
 <div align="center">
   <img src="/readme_image/architecture.png" alt="img" width="550">
 </div>
 
-1. 기존의 DB에서 데이터 마트로 주기적 데이터 전송 (By Spark, Airflow)
-2. 전송되는 데이터에 대한 데이터 퀄리티 체크, 로깅, 모니터링 구성
+1. 주식거래서비스를 모델링한 초기 DB 생성
+2. 초기 DB(Mysql)에서 데이터 마트(Bigquery)로 주기적 데이터 전송 (By Spark, Airflow)
+3. 전송되는 데이터에 대한 데이터 퀄리티 체크, 로깅, 모니터링 단단 구성
   - pydeequ를 이용한 데이터 퀄리티 체크
-  - spark history server운영, airflow를 통해
-3. Bigquery를 데이터마트로 운영하고 tableau로 시각화된 BI 제공
-
-
-
----
-
-## 구성
-
-**input :** DB에 저장되는 초기 데이터가 담긴 디렉토리입니다.
-- **stock :** `yfinacne.ipynb`를 통해 extract한 주식(ticker) 데이터
-- **budget.csv, ./customer.csv, ./stocks.csv, ./trade.csv :**  `chatgpt`를 통해 생성해낸 가상의 고객 데이터
-
-
-**airflow/dags :** 두가지 dag를 통해 관리되며, `spark-submit`을 실행하는 bash operator로 구성되어 있습니다.
-- **init_database_dag.py :** input에 저장된 csv 파일들을 `mysql db에 저장`
-- **db_to_dw_dag.py :** mysql에 저장된 table을 `데이터 퀄리티 검증 후 bigquery로 전송`
-
-
-**jars :** `spark-submit` 에 제출되는 jar 파일, PySpark 애플리케이션
-- **constraints :** 각 테이블에 대한 퀄리티 및 정합성 검사 후 검사 결과를 bigquery에 저장하는 코드가 담긴 디렉토리 . `Pydeequ`를 통해 spark 기반으로 검사부터 저장까지 이루어짐
-- get_df_profiles.py : 데이터 프로필을 검사 후 저장
-- init_db.py : csv 파일을 읽어와 db에 저장하는 spark 코드
-- **transfer_db_to_big.py :** db에 저장된 기존 테이블을 dm로 전송하는 spark 코드
-- **packages_jars :** spark에 제출하는 mysql, bigquery 용 jar 파일
-- spark2big-992917168560.json (git ignored) :  Bigquery credential로 `transfer_db_to_big.py`에 사용
-
-**sql :** `Bigquery`에서 실행되는 sql 쿼리입니다. 
-- query_1_... : 날짜별 총 주문의 수
-- query_2_... : 나이대, 성별 그룹의 가장 많이 구매된 종목
-- query_3_... : 나이대별 Apple 종목의 거래 횟수
-- query_4_... : 데이터 퀄리티(constraints) 검증 결과를 조회
-
-
-**Dockerfile, Dockerfile-airflow :** 각각 spark, airflow를 위한 도커 파일입니다.
-**docker-compose.yaml :** 스파크 드라이버, 2개의 스파크 워커, 스파크 히스토리 서버, airflow가 구성된 도커 컴포즈입니다.
+  - spark history server운영
+  - airflow 통해 주기적인 데이터 마트 최신화
+4. Bigquery를 데이터마트로 운영하고 tableau로 시각화된 BI 제공
 
 
 
@@ -62,8 +30,19 @@
   <img src="/readme_image/dberd.png" alt="img" width="550">
 </div>
 
+### Airflow dag로 관리되는 주요 워크플로
+<div align="center">
+  <img src="/readme_image/airflow_log.png" alt="img" width="600">
+</div>
+
+- **초기 db 생성, db에 저장된 데이터에 대한 퀄리티 검사 후 데이터 마트(Bigquery)로 전송**
+- airflow를 통한 순차적인 워크플로 실행
+- 각 실행에 대한 로그 관리
+- 30분 마다 Bigquery-db간의 연동을 진행
+
+
 ### 데이터 퀄리티 및 정합성 체크
-다음 같은 `Pydeequ` 코드로 데이터 퀄리티 및 정합성을 체크합니다.
+다음처럼 `Pydeequ`를 이용해 `Spark` 기반으로 데이터 퀄리티 및 정합성을 체크합니다.
 
 ```
 check = (
@@ -95,14 +74,7 @@ check = (
 
 
 
-### Airflow dag 스케쥴링
-<div align="center">
-  <img src="/readme_image/airflow_log.png" alt="img" width="600">
-</div>
 
-- airflow를 통한 순차적인 워크플로 실행
-- 각 실행에 대한 로그 관리
-- 30분 마다 big-query db와의 연동을 진행행
 
 ### 데이터마트로 작동하는 Bigquery와 tableau를 이용한 시각화
 
@@ -139,6 +111,36 @@ ORDER BY total_orders DESC
   <img src="/readme_image/query4_verifcationResults.png" alt="img" width="500">
 </div>
 
+
+### 구성
+
+**input :** DB에 저장되는 초기 데이터가 담긴 디렉토리입니다.
+- **stock :** `yfinacne.ipynb`를 통해 extract한 주식(ticker) 데이터
+- **budget.csv, ./customer.csv, ./stocks.csv, ./trade.csv :**  `chatgpt`를 통해 생성해낸 가상의 고객 데이터
+
+
+**airflow/dags :** 두가지 dag를 통해 관리되며, `spark-submit`을 실행하는 bash operator로 구성되어 있습니다.
+- **init_database_dag.py :** input에 저장된 csv 파일들을 `mysql db에 저장`
+- **db_to_dw_dag.py :** mysql에 저장된 table을 `데이터 퀄리티 검증 후 bigquery로 전송`
+
+
+**jars :** `spark-submit` 에 제출되는 jar 파일, PySpark 애플리케이션
+- **constraints :** 각 테이블에 대한 퀄리티 및 정합성 검사 후 검사 결과를 bigquery에 저장하는 코드가 담긴 디렉토리 . `Pydeequ`를 통해 spark 기반으로 검사부터 저장까지 이루어짐
+- get_df_profiles.py : 데이터 프로필을 검사 후 저장
+- init_db.py : csv 파일을 읽어와 db에 저장하는 spark 코드
+- **transfer_db_to_big.py :** db에 저장된 기존 테이블을 dm로 전송하는 spark 코드
+- **packages_jars :** spark에 제출하는 mysql, bigquery 용 jar 파일
+- spark2big-992917168560.json (git ignored) :  Bigquery credential로 `transfer_db_to_big.py`에 사용
+
+**sql :** `Bigquery`에서 실행되는 sql 쿼리입니다. 
+- query_1_... : 날짜별 총 주문의 수
+- query_2_... : 나이대, 성별 그룹의 가장 많이 구매된 종목
+- query_3_... : 나이대별 Apple 종목의 거래 횟수
+- query_4_... : 데이터 퀄리티(constraints) 검증 결과를 조회
+
+
+**Dockerfile, Dockerfile-airflow :** 각각 spark, airflow를 위한 도커 파일입니다.
+**docker-compose.yaml :** 스파크 드라이버, 2개의 스파크 워커, 스파크 히스토리 서버, airflow가 구성된 도커 컴포즈입니다.
 
 
 ## 3. 트러블 슈팅
